@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exact Online — Authentication</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+      padding: 40px;
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .icon { font-size: 48px; margin-bottom: 16px; }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #111;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #666;
+      font-size: 15px;
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    .instruction {
+      background: #f0f7ff;
+      border: 1px solid #cce0ff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      text-align: left;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .instruction strong { color: #0066cc; }
+
+    .url-box {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #222;
+      word-break: break-all;
+      text-align: left;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .copy-btn {
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.15s;
+    }
+
+    .copy-btn:hover { background: #0052a3; }
+    .copy-btn.copied { background: #28a745; }
+
+    .error-card { border-top: 4px solid #dc3545; }
+    .error-card .icon { color: #dc3545; }
+
+    .footer {
+      margin-top: 28px;
+      font-size: 13px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="icon" id="icon">⏳</div>
+    <h1 id="title">Reading authentication code...</h1>
+    <p class="subtitle" id="subtitle"></p>
+    <div id="content"></div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code  = params.get("code");
+    const error = params.get("error");
+    const fullUrl = window.location.href;
+
+    const card     = document.getElementById("card");
+    const icon     = document.getElementById("icon");
+    const title    = document.getElementById("title");
+    const subtitle = document.getElementById("subtitle");
+    const content  = document.getElementById("content");
+
+    if (error) {
+      card.classList.add("error-card");
+      icon.textContent = "❌";
+      title.textContent = "Authentication failed";
+      subtitle.textContent = "Exact Online returned an error: " + error;
+      content.innerHTML = `<p style="color:#dc3545;font-size:14px;">Please close this tab and try running <code>--auth</code> again.</p>`;
+
+    } else if (code) {
+      icon.textContent = "✅";
+      title.textContent = "Authentication successful!";
+      subtitle.innerHTML = "Copy the full URL below and paste it into your terminal.";
+
+      content.innerHTML = `
+        <div class="instruction">
+          <strong>Step:</strong> Copy the full URL below, go back to your terminal,
+          and paste it at the prompt. Then press Enter.
+        </div>
+        <div class="url-box" id="urlBox">${fullUrl}</div>
+        <button class="copy-btn" id="copyBtn" onclick="copyUrl()">Copy URL</button>
+        <div class="footer">This page is only used for authentication setup and does not send your data anywhere.</div>
+      `;
+    } else {
+      icon.textContent = "⚠️";
+      title.textContent = "No code found";
+      subtitle.textContent = "This page should only be visited after approving access in Exact Online.";
+      content.innerHTML = `<p style="color:#666;font-size:14px;">If you landed here by accident, close this tab and run <code>--auth</code> again.</p>`;
+    }
+
+    function copyUrl() {
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        const btn = document.getElementById("copyBtn");
+        btn.textContent = "Copied!";
+        btn.classList.add("copied");
+        setTimeout(() => {
+          btn.textContent = "Copy URL";
+          btn.classList.remove("copied");
+        }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
